@@ -1,21 +1,337 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* app/globals.css */
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Global Reset */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  /* Allow vertical scrolling, disable horizontal scrolling */
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  background-color: #ffe6f2; /* Soft light pink */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+/* Container */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Removed fixed height so content can grow */
+  min-height: 100vh;
+  text-align: center;
+  background: linear-gradient(135deg, #ffb3c1, #ffe6f2);
+  padding: 20px;
+  position: relative;
+}
+
+/* Top-left "Change Prices" Button */
+.change-prices-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: #ff66a3;
+  color: #fff;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  z-index: 100;
+}
+
+.change-prices-btn:hover {
+  background-color: #ff4d88;
+}
+
+/* "Add Product" Trigger (Big '+' Card) */
+.add-product-trigger {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 102, 163, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #fff;
+  cursor: pointer;
+  z-index: 100;
+  transition: background 0.3s ease;
+}
+
+.add-product-trigger:hover {
+  background: rgba(255, 102, 163, 0.8);
+}
+
+
+.add-product-trigger:hover {
+  background: rgba(255, 102, 163, 0.8);
+}
+
+/* Price Editing Modal */
+.price-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  z-index: 200;
+  width: 90%;
+  max-width: 400px;
+}
+
+.price-form h3 {
+  margin-top: 0;
+}
+
+.price-input-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.price-input-group label {
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.price-input-group input {
+  width: 100%;
+  padding: 10px;
+  font-size: 1.1rem;
+  border: 2px solid #ff66a3;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.price-save-btn {
+  background-color: #ff66a3;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 10px;
+}
+
+.price-save-btn:hover {
+  background-color: #ff4d88;
+}
+
+/* Add Product Modal */
+.add-product-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  z-index: 200;
+  width: 90%;
+  max-width: 400px;
+}
+
+.add-product-form h3 {
+  margin-top: 0;
+}
+
+.add-product-form label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.add-product-form input[type="text"],
+.add-product-form input[type="number"],
+.add-product-form input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  font-size: 1.1rem;
+  border: 2px solid #ff66a3;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.error-text {
+  color: #d9534f;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* Title Styling */
+.title {
+  font-size: 2.5rem;
+  color: #ff66a3;
+  margin: 20px 0 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced Message Card */
+.message-card {
+  background-color: #fff;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  padding: 15px 20px;
+  margin-bottom: 30px;
+  width: 100%;
+  max-width: 400px;
+  transition: all 0.3s ease;
+}
+
+.message-card.enhanced {
+  background: linear-gradient(135deg, #fff, #ffe6f2);
+  border: 2px solid #ff66a3;
+}
+
+.message-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.message-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #ff66a3;
+  border-radius: 10px;
+  font-size: 1rem;
+  resize: none;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+.message-textarea:focus {
+  border-color: #ff4d88;
+}
+
+.message-save-btn {
+  background-color: #ff66a3;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 5px;
+}
+
+.message-save-btn:hover {
+  background-color: #ff4d88;
+}
+
+.message-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Cards Container */
+.cards-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 20px;
+}
+
+/* Retro Product Card Styling (Bigger Cards) */
+.card {
+  background: #fff;
+  border-radius: 15px;
+  border: 4px solid;
+  border-image-slice: 1;
+  border-image-source: linear-gradient(45deg, #ff66a3, #ff4d88);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  width: 350px;
+  height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+.card-image {
+  width: 100%;
+  height: 70%;
+  object-fit: cover;
+}
+
+.card-info {
+  padding: 10px;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  color: #ff66a3;
+  margin: 5px 0;
+}
+
+.card-price {
+  font-size: 1.2rem;
+  color: #333;
+}
+
+/* Modal Close Button (for Add Product Modal) */
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #ff1a1a; /* Bright red */
+  cursor: pointer;
+  transition: transform 0.2s;
+  z-index: 210;
+}
+
+.modal-close:hover {
+  transform: scale(1.2);
+}
+
+/* Remove Product Button (appears on each product card) */
+.remove-product-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: #ff1a1a; /* Bright red */
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.2rem;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  z-index: 50;
+  transition: transform 0.2s, opacity 0.2s;
+  opacity: 0.8;
+}
+
+.remove-product-btn:hover {
+  transform: scale(1.1);
+  opacity: 1;
 }

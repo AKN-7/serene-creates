@@ -1,101 +1,305 @@
-import Image from "next/image";
+// app/page.tsx
+
+"use client";
+
+import { useEffect, useState, FormEvent, ChangeEvent } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+type Product = {
+  image: string;
+  title: string;
+  price: number;
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  // Message card states
+  const [favoriteMessage, setFavoriteMessage] = useState<string>('');
+  const [inputMessage, setInputMessage] = useState<string>('');
+  const [isEditingMessage, setIsEditingMessage] = useState<boolean>(false);
+  const [messageError, setMessageError] = useState<string>('');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  // Product states: dynamic list of products
+  const [products, setProducts] = useState<Product[]>([
+    { image: '/images/card1.png', title: "Bunny's Milk", price: 10 },
+    { image: '/images/card2.png', title: 'Pikachu Pouch', price: 10 },
+    { image: '/images/card3.png', title: 'Palestine Watermelon', price: 10 },
+  ]);
+
+  // Price change modal state
+  const [isEditingPrices, setIsEditingPrices] = useState<boolean>(false);
+  // For price modal, we keep a separate array of strings (for easier editing)
+  const [priceInputs, setPriceInputs] = useState<string[]>(
+    products.map((p) => p.price.toString())
+  );
+
+  // Add Product modal state
+  const [isAddingProduct, setIsAddingProduct] = useState<boolean>(false);
+  const [newProductTitle, setNewProductTitle] = useState<string>('');
+  const [newProductPrice, setNewProductPrice] = useState<string>('10');
+  const [newProductImage, setNewProductImage] = useState<string>(''); // store as data URL
+  const [addProductError, setAddProductError] = useState<string>('');
+
+  // On mount, load saved message
+  useEffect(() => {
+    const savedMessage = localStorage.getItem('favoriteMessage');
+    if (savedMessage) {
+      setFavoriteMessage(savedMessage);
+      setInputMessage(savedMessage);
+    }
+  }, []);
+
+  // When products update, update priceInputs so the price modal reflects the current prices.
+  useEffect(() => {
+    setPriceInputs(products.map((p) => p.price.toString()));
+  }, [products]);
+
+  // Message form submit handler
+  const handleMessageSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!inputMessage.trim()) {
+      setMessageError('Please enter a cute message.');
+      return;
+    }
+    localStorage.setItem('favoriteMessage', inputMessage);
+    setFavoriteMessage(inputMessage);
+    setMessageError('');
+    setIsEditingMessage(false);
+  };
+
+  // Price change form submit handler
+  const handlePriceSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const updatedProducts = products.map((product, i) => {
+      const newPrice = parseFloat(priceInputs[i]);
+      return { ...product, price: isNaN(newPrice) ? product.price : newPrice };
+    });
+    setProducts(updatedProducts);
+    setIsEditingPrices(false);
+  };
+
+  // Add product form submit handler
+  const handleAddProductSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!newProductTitle.trim() || !newProductImage || !newProductPrice.trim()) {
+      setAddProductError('All fields are required.');
+      return;
+    }
+    const price = parseFloat(newProductPrice);
+    if (isNaN(price)) {
+      setAddProductError('Price must be a number.');
+      return;
+    }
+    const newProduct: Product = {
+      image: newProductImage,
+      title: newProductTitle,
+      price: price,
+    };
+    setProducts([...products, newProduct]);
+    setIsAddingProduct(false);
+    // Reset fields
+    setNewProductTitle('');
+    setNewProductPrice('10');
+    setNewProductImage('');
+    setAddProductError('');
+  };
+
+  // Handle file upload for new product image
+  const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        if (ev.target?.result) {
+          setNewProductImage(ev.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Remove product handler
+  const handleRemoveProduct = (index: number) => {
+    const updatedProducts = [...products];
+    updatedProducts.splice(index, 1);
+    setProducts(updatedProducts);
+  };
+
+  return (
+    <div className="container">
+      {/* Top left "Change Prices" Button */}
+      <button 
+        className="change-prices-btn"
+        onClick={() => setIsEditingPrices(true)}
+      >
+        Change Prices
+      </button>
+
+      {/* Price Editing Modal */}
+      <AnimatePresence>
+        {isEditingPrices && (
+          <motion.div 
+            className="price-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+            <form className="price-form" onSubmit={handlePriceSubmit}>
+              <h3>Update Prices</h3>
+              {products.map((product, index) => (
+                <div key={index} className="price-input-group">
+                  <label>{product.title}:</label>
+                  <input 
+                    type="number"
+                    value={priceInputs[index] || ''}
+                    onChange={(e) => {
+                      const copy = [...priceInputs];
+                      copy[index] = e.target.value;
+                      setPriceInputs(copy);
+                    }}
+                  />
+                </div>
+              ))}
+              <button type="submit" className="price-save-btn">Save Prices</button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Top right "Add Product" Trigger */}
+      <div className="add-product-trigger" onClick={() => setIsAddingProduct(true)}>
+        <span>+</span>
+      </div>
+
+      {/* Add Product Modal (without an extra close "X" on the add-product trigger) */}
+      <AnimatePresence>
+        {isAddingProduct && (
+          <motion.div 
+            className="add-product-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <form className="add-product-form" onSubmit={handleAddProductSubmit}>
+              <h3>Add New Product</h3>
+              <label>Product Title:</label>
+              <input 
+                type="text"
+                value={newProductTitle}
+                onChange={(e) => setNewProductTitle(e.target.value)}
+              />
+              <label>Price:</label>
+              <input 
+                type="number"
+                value={newProductPrice}
+                onChange={(e) => setNewProductPrice(e.target.value)}
+              />
+              <label>Upload Image:</label>
+              <input 
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+              />
+              {addProductError && <p className="error-text">{addProductError}</p>}
+              <button type="submit" className="price-save-btn">Add Product</button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Title Section */}
+      <motion.h1
+        className="title"
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+      >
+        Serene Creates
+      </motion.h1>
+
+      {/* Enhanced, Sleek Intro (Message) Card */}
+      <motion.div
+        className="message-card enhanced"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.3 }}
+      >
+        <AnimatePresence mode="wait">
+          {isEditingMessage ? (
+            <motion.form
+              key="edit"
+              onSubmit={handleMessageSubmit}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.3 }}
+              className="message-form"
+            >
+              <textarea
+                className="message-textarea"
+                value={inputMessage}
+                placeholder="Share your cute thought..."
+                onChange={(e) => setInputMessage(e.target.value)}
+                rows={3}
+              />
+              {messageError && <p className="error-text">{messageError}</p>}
+              <button type="submit" className="message-save-btn">
+                Save Message
+              </button>
+            </motion.form>
+          ) : (
+            <motion.div
+              key="display"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.3 }}
+              className="message-display"
+            >
+              <p className="intro-message">
+                {favoriteMessage || "Share a cute thought for your day!"}
+              </p>
+              <button
+                onClick={() => {
+                  setIsEditingMessage(true);
+                  setMessageError('');
+                }}
+                className="message-save-btn"
+              >
+                {favoriteMessage ? "Edit Message" : "Add Message"}
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Products Cards */}
+      <div className="cards-container">
+        {products.map((product, index) => (
+          <motion.div
+            key={index}
+            className="card"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+          >
+            <button 
+              className="remove-product-btn"
+              onClick={() => handleRemoveProduct(index)}
+            >
+              &times;
+            </button>
+            <img
+              src={product.image}
+              alt={product.title}
+              className="card-image"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            <div className="card-info">
+              <h2 className="card-title">{product.title}</h2>
+              <p className="card-price">${product.price.toFixed(2)}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
     </div>
   );
 }

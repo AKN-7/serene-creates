@@ -72,11 +72,6 @@ html, body {
   background: rgba(255, 102, 163, 0.8);
 }
 
-
-.add-product-trigger:hover {
-  background: rgba(255, 102, 163, 0.8);
-}
-
 /* Price Editing Modal */
 .price-modal {
   position: fixed;
@@ -334,4 +329,15 @@ html, body {
 .remove-product-btn:hover {
   transform: scale(1.1);
   opacity: 1;
+}
+
+/* Adjustments for smaller screens (e.g. iPad and mobile) */
+@media (max-width: 768px) {
+  .remove-product-btn {
+    top: 3px;
+    right: 3px;
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
 }

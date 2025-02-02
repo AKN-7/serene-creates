@@ -19,7 +19,7 @@ export default function Home() {
   const [messageError, setMessageError] = useState<string>("");
 
   // Product states: dynamic list of products  
-  // Default products in case no localStorage exists.
+  // Default products if nothing is stored
   const defaultProducts: Product[] = [
     { image: "/images/card1.png", title: "Bunny's Milk", price: 10 },
     { image: "/images/card2.png", title: "Pikachu Pouch", price: 10 },
@@ -29,19 +29,19 @@ export default function Home() {
 
   // Price change modal state
   const [isEditingPrices, setIsEditingPrices] = useState<boolean>(false);
-  // For price modal, we keep a separate array of strings (for easier editing)
+  // We'll maintain a priceInputs array for editing; it will be rebuilt from products
   const [priceInputs, setPriceInputs] = useState<string[]>(
-    products.map((p) => p.price.toString())
+    defaultProducts.map((p) => p.price.toString())
   );
 
   // Add Product modal state
   const [isAddingProduct, setIsAddingProduct] = useState<boolean>(false);
   const [newProductTitle, setNewProductTitle] = useState<string>("");
   const [newProductPrice, setNewProductPrice] = useState<string>("10");
-  const [newProductImage, setNewProductImage] = useState<string>(""); // store as data URL
+  const [newProductImage, setNewProductImage] = useState<string>(""); // stored as data URL
   const [addProductError, setAddProductError] = useState<string>("");
 
-  // On mount, load saved message and products
+  // On mount, load saved message and products from localStorage
   useEffect(() => {
     const savedMessage = localStorage.getItem("favoriteMessage");
     if (savedMessage) {
@@ -51,17 +51,18 @@ export default function Home() {
     const savedProducts = localStorage.getItem("products");
     if (savedProducts) {
       try {
-        setProducts(JSON.parse(savedProducts));
+        const parsedProducts = JSON.parse(savedProducts);
+        setProducts(parsedProducts);
+        setPriceInputs(parsedProducts.map((p: Product) => p.price.toString()));
       } catch (e) {
         console.error("Error parsing saved products", e);
       }
     }
   }, []);
 
-  // Whenever the products state changes, update localStorage
+  // Whenever products change, update localStorage and rebuild the priceInputs array
   useEffect(() => {
     localStorage.setItem("products", JSON.stringify(products));
-    // Also update priceInputs to reflect the new products prices:
     setPriceInputs(products.map((p) => p.price.toString()));
   }, [products]);
 
@@ -89,14 +90,10 @@ export default function Home() {
     setIsEditingPrices(false);
   };
 
-  // Add product form submit handler
+  // Add product form submit handler with synchronous update of priceInputs
   const handleAddProductSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (
-      !newProductTitle.trim() ||
-      !newProductImage ||
-      !newProductPrice.trim()
-    ) {
+    if (!newProductTitle.trim() || !newProductImage || !newProductPrice.trim()) {
       setAddProductError("All fields are required.");
       return;
     }
@@ -110,7 +107,10 @@ export default function Home() {
       title: newProductTitle,
       price: price,
     };
-    setProducts([...products, newProduct]);
+    const updatedProducts = [...products, newProduct];
+    setProducts(updatedProducts);
+    // Immediately update priceInputs from updatedProducts to avoid index mismatches
+    setPriceInputs(updatedProducts.map((p) => p.price.toString()));
     setIsAddingProduct(false);
     // Reset fields
     setNewProductTitle("");
